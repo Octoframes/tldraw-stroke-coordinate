@@ -1,58 +1,47 @@
-import { Tldraw, track, useEditor } from "tldraw"
-import "tldraw/tldraw.css"
+import { Tldraw } from "tldraw";
+import "tldraw/tldraw.css";
+import { useState } from "react";
 
-// There's a guide at the bottom of this file!
-
-// [1]
 export default function ShapeMetaExample() {
+  const [length, setLength] = useState(0);
+
   return (
-    <div className="tldraw__editor"
-    style={{
-      display: "flex",
-      position: "absolute",
-      width: "2000px",
-      height: "1000px",
-      top: "50px",
-    }}>
-      <Tldraw
-        persistenceKey="shape_meta_example"
-        onMount={editor => {
-          editor.getInitialMetaForShape = shape => {
-            return { label: `My ${shape.type} shape` }
-          }
+    <>
+      <div
+        style={{
+          display: "flex",
+          position: "absolute",
+          width: "500px",
+          height: "500px",
+          top: "50px",
         }}
       >
-        <ShapeLabelUiWithHelper />
-      </Tldraw>
-    </div>
-  )
+        <Tldraw
+          onMount={(editor) => {
+            editor.store.listen(() => {
+              let ob = editor.getCurrentPageShapesSorted();
+              if (ob.length === 0) return;
+              let lastElement = ob[ob.length - 1];
+              if (
+                lastElement.props.segments &&
+                lastElement.props.segments[0].points
+              ) {
+                // Set the length state to the length of the points array
+                setLength(lastElement.props.segments[0].points.length);
+              }
+            });
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          position: "absolute",
+          top: "0px",
+        }}
+      >
+        Length of currently drawn stroke: {length}
+      </div>
+    </>
+  );
 }
-
-// [3]
-export const ShapeLabelUiWithHelper = track(function ShapeLabelUiWithHelper() {
-  const editor = useEditor()
-  const onlySelectedShape = editor.getOnlySelectedShape()
-
-  function onChange(e) {
-    if (onlySelectedShape) {
-      const { id, type, meta } = onlySelectedShape
-
-      editor.updateShapes([
-        { id, type, meta: { ...meta, label: e.currentTarget.value } }
-      ])
-    }
-  }
-
-  return (
-    <div style={{ position: "absolute", zIndex: 300, top: 64, left: 12 }}>
-      <pre style={{ margin: "0 0 16px 0" }}>
-        {onlySelectedShape
-          ? JSON.stringify(onlySelectedShape.meta, null, "\t")
-          : "Select one shape to see / edit its meta data."}
-      </pre>
-      {onlySelectedShape && (
-        <input value={onlySelectedShape.meta.label} onChange={onChange} />
-      )}
-    </div>
-  )
-})
