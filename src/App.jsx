@@ -38,6 +38,7 @@ export default function ShapeMetaExample() {
           display: "flex",
           position: "absolute",
           top: "0px",
+          fontSize: "30px",
         }}
       >
         Length of currently drawn stroke: {length}
